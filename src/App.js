@@ -1,23 +1,46 @@
-import logo from './logo.svg';
+
+import { useEffect, useState } from 'react';
 import './App.css';
+import { List } from './components';
 
 function App() {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadDetails = (items) => {
+    const promises = items.map((item) => {
+      return fetch(item.url).then((response) => response.json())
+    });
+    Promise.all(promises)
+      .then((data) => {
+        setItems(data);
+        setLoading(false);
+      });
+  }
+
+  useEffect(() => {
+    const url = 'https://pokeapi.co/api/v2/pokemon?limit=20';
+    setLoading(true);
+    fetch(url)
+      .then((response) => {
+          return response.json();
+      })
+      .then((data) => {
+        const { results } = data;
+        loadDetails(results);
+      })
+      .catch(() => {
+        console.error('Error');
+      });
+  }, []);
+
+  if (loading){
+    return <h1>Carregando Exercicio 10...</h1>
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <List items={items} />
     </div>
   );
 }
